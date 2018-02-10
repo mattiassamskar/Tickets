@@ -9,5 +9,11 @@ namespace CheckTickets.Tests
     {
       var ticketsAvailable = TicketService.TicketsAvailable();
     }
+
+    [Fact]
+    public void TestSendSms()
+    {
+      SmsService.SendSms("test sms");
+    }
   }
 }

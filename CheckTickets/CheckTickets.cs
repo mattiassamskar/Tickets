@@ -1,7 +1,12 @@
 using System;
+using System.Configuration;
+using System.Globalization;
 using System.Net;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
+using Twilio;
+using Twilio.Rest.Api.V2010.Account;
+using Twilio.Types;
 
 namespace CheckTickets
 {
@@ -13,15 +18,21 @@ namespace CheckTickets
       try
       {
         log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
-
-        if (TicketService.TicketsAvailable())
-          SmsService.SendSms("Train tickets available!");
+        var smsText = TicketService.TicketsAvailable() ? "Train tickets available!" : "No tickets as of " + GetSwedishDateTimeNow();
+        SmsService.SendSms(smsText);
       }
       catch (Exception e)
       {
         SmsService.SendSms(e.Message);
         throw;
       }
+    }
+
+    private static string GetSwedishDateTimeNow()
+    {
+      return TimeZoneInfo.ConvertTimeFromUtc(DateTime.Now.ToUniversalTime(),
+          TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time"))
+        .ToString("g", new CultureInfo("sv-SE"));
     }
   }
 
@@ -33,7 +44,7 @@ namespace CheckTickets
       {
         var content = webClient.DownloadString("https://mtrexpress.se/gw/site/content/sv-SE");
 
-        if(!content.Contains("Nu kan du boka resor fram till"))
+        if (!content.Contains("Nu kan du boka resor fram till"))
           throw new Exception("Cannot find ticket data.");
 
         return !content.Contains("Nu kan du boka resor fram till 1 juni");
@@ -43,9 +54,19 @@ namespace CheckTickets
 
   public class SmsService
   {
-    public static void SendSms(string trainTicketsAvailable)
+    public static void SendSms(string message)
     {
-      
+      var accountSid = ConfigurationManager.AppSettings["AccountSid"];
+      var authToken = ConfigurationManager.AppSettings["AuthToken"];
+      var toPhoneNumber = ConfigurationManager.AppSettings["ToPhoneNumber"];
+      var fromPhoneNumber = ConfigurationManager.AppSettings["FromPhoneNumber"];
+
+      TwilioClient.Init(accountSid, authToken);
+
+      MessageResource.Create(
+        new PhoneNumber(toPhoneNumber),
+        from: new PhoneNumber(fromPhoneNumber),
+        body: message);
     }
   }
 }
