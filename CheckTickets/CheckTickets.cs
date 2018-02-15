@@ -42,12 +42,13 @@ namespace CheckTickets
     {
       using (var webClient = new WebClient())
       {
-        var content = webClient.DownloadString("https://mtrexpress.se/gw/site/content/sv-SE");
-
-        if (!content.Contains("Nu kan du boka resor fram till"))
+        var content = webClient.UploadString("https://mtrexpress.se/api/mtr/trains/calendar",
+          "{\"travel_period\":{\"date_from\":\"2018-02-15\",\"date_to\":\"2020-01-16\"}}");
+        
+        if (!content.Contains("{\"status\":\"success\",\"data\":{\"calendar\":{\"2018\""))
           throw new Exception("Cannot find ticket data.");
 
-        return !content.Contains("Nu kan du boka resor fram till 1 juni");
+        return content.Contains("2018-06-05");
       }
     }
   }
