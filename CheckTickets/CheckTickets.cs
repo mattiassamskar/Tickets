@@ -60,13 +60,11 @@ namespace CheckTickets
       var accountSid = ConfigurationManager.AppSettings["AccountSid"];
       var authToken = ConfigurationManager.AppSettings["AuthToken"];
       var toPhoneNumber1 = ConfigurationManager.AppSettings["ToPhoneNumber1"];
-      var toPhoneNumber2 = ConfigurationManager.AppSettings["ToPhoneNumber2"];
       var fromPhoneNumber = ConfigurationManager.AppSettings["FromPhoneNumber"];
 
       TwilioClient.Init(accountSid, authToken);
 
       MessageResource.Create(new PhoneNumber(toPhoneNumber1), from: new PhoneNumber(fromPhoneNumber), body: message);
-      MessageResource.Create(new PhoneNumber(toPhoneNumber2), from: new PhoneNumber(fromPhoneNumber), body: message);
     }
   }
 }
