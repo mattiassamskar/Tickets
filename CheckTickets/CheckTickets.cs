@@ -23,6 +23,7 @@ namespace CheckTickets
       }
       catch (Exception e)
       {
+        log.Info($"{e.Message} {e.StackTrace}");
         SmsService.SendSms(e.Message);
         throw;
       }
